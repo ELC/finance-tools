@@ -80,9 +80,9 @@ while True:
     if (today.year - initial_date.year) == years_to_invest and today.day == 2:
         break
 
+
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 plt.style.use("bmh")
 
