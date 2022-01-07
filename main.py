@@ -9,12 +9,12 @@ from pages import pages
 def landing_page(st):
     st.markdown(Path("README.md").read_text())
 
-
 st.set_page_config(layout="wide")
 
 app = MultiPage()
 app.st = st
-app.navbar_style = "SelectBox"
+app.navbar_name = "Other Apps"
+app.start_button = "Start App"
 
 app.add_app("Landing", landing_page, initial_page=True)
 
