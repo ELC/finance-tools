@@ -1,4 +1,5 @@
 streamlit
 numpy
 matplotlib
-streamlit-multipage
+streamlit-multipage==0.0.16
+joblib
