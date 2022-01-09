@@ -105,10 +105,8 @@ def flexfixed(st, **state):
     proportion = max(fixed_total_interest, flex_total_interest) / min(fixed_total_interest, flex_total_interest)
     percentage = (proportion - 1) * 100
 
-    if fixed_total_interest > flex_total_interest:
-        time_to_pass = np.argmin(flex_capital_over_time > fixed_capital_over_time)
-    else:
-        time_to_pass = np.argmin(flex_capital_over_time < fixed_capital_over_time)
+    difference = np.abs(flex_capital_over_time - fixed_capital_over_time)
+    time_to_pass = np.argmin(difference)
 
     st.write(f"The best one was the **{best}** alternative, yielding **${amount:.2f} ({percentage:.2f}%)** more than the alternative. It took {time_to_pass} days to match the alternative.")
     left, middle_left, middle_right, right = st.columns(4)

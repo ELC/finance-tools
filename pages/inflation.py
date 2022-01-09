@@ -40,7 +40,6 @@ def inflation_simulation(st, **state):
 
     years = st.slider("Years", min_value=1, max_value=15, value=2)
 
-
     st.write("## Simulation Results")
 
     median_capital, min_capital, max_capital = simulate_inflation(initial_capital, optimistic, realistic, pesimistic, years, daily_conpound)
