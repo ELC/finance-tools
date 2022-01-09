@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import numpy as np
+
 compounding_frequencies = {"Annualy": 1, "Monthly": 12, "Daily": 365}
 
 compound_frequency_options = {"Annualy": 365, "Monthly": 30, "Daily": 1}
@@ -141,6 +143,8 @@ def simulate(
     total_interest = interests[-1]
     total_deposists = deposits[-1]
     total_capital = capital_over_time[-1]
+
+    capital_over_time = np.array(capital_over_time)
 
     if not extras:
         return total_interest, total_deposists, total_capital, capital_over_time

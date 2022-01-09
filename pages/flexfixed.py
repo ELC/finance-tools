@@ -98,6 +98,25 @@ def flexfixed(st, **state):
     right_results.metric("Total Deposists", f"${fixed_total_deposists:.2f}")
     right_results.metric("Total Interest", f"${fixed_total_interest:.2f}")
 
+    st.write("#### Comparison")
+
+    best = "Fixed" if fixed_total_interest > flex_total_interest else "Flex"
+    amount = abs(fixed_total_interest - flex_total_interest)
+    proportion = max(fixed_total_interest, flex_total_interest) / min(fixed_total_interest, flex_total_interest)
+    percentage = (proportion - 1) * 100
+
+    if fixed_total_interest > flex_total_interest:
+        time_to_pass = np.argmin(flex_capital_over_time > fixed_capital_over_time)
+    else:
+        time_to_pass = np.argmin(flex_capital_over_time < fixed_capital_over_time)
+
+    st.write(f"The best one was the **{best}** alternative, yielding **${amount:.2f} ({percentage:.2f}%)** more than the alternative. It took {time_to_pass} days to match the alternative.")
+    left, middle_left, middle_right, right = st.columns(4)
+    left.metric("Best Strategy", best)
+    middle_left.metric("Difference (abs)", f"${amount:.2f}")
+    middle_right.metric("Difference (%)", f"{percentage:.2f}%")
+    right.metric("Time to match", f"{time_to_pass} days")
+
     plot_comparison(st, flex_capital_over_time, fixed_capital_over_time)
 
 
