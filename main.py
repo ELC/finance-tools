@@ -9,6 +9,7 @@ from pages import pages
 def landing_page(st):
     st.markdown(Path("README.md").read_text())
 
+
 st.set_page_config(layout="wide")
 
 app = MultiPage()

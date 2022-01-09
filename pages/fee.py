@@ -10,6 +10,7 @@ __description__ = """
 
 """
 
+
 def fee_recovery(st, **state):
     st.title("Fee Recovery Simulation")
     st.write(__description__)
@@ -33,7 +34,9 @@ def fee_recovery(st, **state):
 
     noise = right.number_input("± Noise", value=0.1)
 
-    compound_frequency = st.selectbox("Compound Frequency", compound_frequency_options.keys(), index=2)
+    compound_frequency = st.selectbox(
+        "Compound Frequency", compound_frequency_options.keys(), index=2
+    )
 
     compound_frequency_value = compound_frequency_options[compound_frequency]
 
@@ -44,7 +47,15 @@ def fee_recovery(st, **state):
 
     st.write("## Simulation Results")
 
-    median_capital, min_capital, max_capital = simulate_fee(initial_capital, fee, percentage, proportional_interest, proportional_noise, years, compound_frequency_value)
+    median_capital, min_capital, max_capital = simulate_fee(
+        initial_capital,
+        fee,
+        percentage,
+        proportional_interest,
+        proportional_noise,
+        years,
+        compound_frequency_value,
+    )
 
     st.write("### Fee Recovery")
 
@@ -67,23 +78,33 @@ def fee_recovery(st, **state):
     plot_comparison(st, initial_capital, median_capital, min_capital, max_capital)
 
 
-def simulate_fee(initial_capital, fee, percentage, proportional_interest, noise, years, compound_frequency_value):
+def simulate_fee(
+    initial_capital,
+    fee,
+    percentage,
+    proportional_interest,
+    noise,
+    years,
+    compound_frequency_value,
+):
     runs = 1_000
     days = years * 366
 
     if percentage:
-        initial_capital *= (1 - fee)
+        initial_capital *= 1 - fee
     else:
         initial_capital -= fee
-    
+
     data = np.tile(initial_capital, (runs, days))
-   
+
     generator = np.random.default_rng()
 
-    interest_rate = 1 + (proportional_interest + generator.normal(0, noise, size=(runs, days)))
+    interest_rate = 1 + (
+        proportional_interest + generator.normal(0, noise, size=(runs, days))
+    )
     print(np.max(interest_rate))
 
-    exponent = np.arange(days) // compound_frequency_value  + 1
+    exponent = np.arange(days) // compound_frequency_value + 1
 
     rate_compound = (interest_rate) ** exponent
 
@@ -110,7 +131,7 @@ def plot_comparison(st, initial_capital, median_capital, min_capital, max_capita
         plt.axvline(day, color="darkgray", ls="--")
 
     plt.axhline(initial_capital, color="darkgray", ls="-.")
-    
+
     plt.xlim(0, len(median_capital))
 
     plt.title("Real Value over Time Adjusted for Inflation", fontsize=20)
