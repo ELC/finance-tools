@@ -16,6 +16,7 @@ app = MultiPage()
 app.st = st
 app.navbar_name = "Other Apps"
 app.start_button = "Start App"
+app.navbar_style = "SelectBox"
 
 app.add_app("Landing", landing_page, initial_page=True)
 
