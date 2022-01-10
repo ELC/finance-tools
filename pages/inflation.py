@@ -51,6 +51,23 @@ def inflation_simulation(st, **state):
         initial_capital, optimistic, realistic, pesimistic, years, daily_conpound
     )
 
+    st.write("### Capital at given Day")
+    ask_day = st.number_input("Day:", value=90, min_value=0, max_value=years*365)
+
+    left, middle, right = st.columns(3)
+
+    max_delta = (initial_capital - max_capital[ask_day]) / initial_capital * 100
+    left.metric("Optimistic Case", f"${max_capital[ask_day]:.2f}", f"-{max_delta:.2f}%")
+
+    median_delta = (initial_capital - median_capital[ask_day]) / initial_capital * 100
+    middle.metric(
+        "Realistic Case", f"${median_capital[ask_day]:.2f}", f"-{median_delta:.2f}%"
+    )
+
+    min_delta = (initial_capital - min_capital[ask_day]) / initial_capital * 100
+    right.metric("Pesimistic Case", f"${min_capital[ask_day]:.2f}", f"-{min_delta:.2f}%")
+
+
     st.write("### Capital at the End")
 
     left, middle, right = st.columns(3)
@@ -77,19 +94,21 @@ def simulate_inflation(
     days = years * 365
     data = np.tile(initial_capital, (runs, days))
 
-    fraction = 365 if daily_conpound else 1
-
-    optimistic_rate = (optimistic / 100) / fraction
-    realistic_rate = (realistic / 100) / fraction
-    pesimistic_rate = (pesimistic / 100) / fraction
+    optimistic_rate = (optimistic / 100) 
+    realistic_rate = (realistic / 100)
+    pesimistic_rate = (pesimistic / 100)
 
     generator = np.random.default_rng()
     rate = generator.triangular(
         optimistic_rate, realistic_rate, pesimistic_rate, size=(runs, days)
     )
 
-    interest_rate = rate if daily_conpound else rate / 365 * np.linspace(1, 365, days)
-    exponent = np.arange(days) if daily_conpound else years
+    # Kept as legacy formula
+    # interest_rate = rate if daily_conpound else rate * np.linspace(1, 365, days)
+    # exponent = np.arange(days) if daily_conpound else years
+
+    interest_rate = rate / 365 if daily_conpound else np.power(1 + rate, 1 / 365) - 1
+    exponent = np.arange(days)
 
     rate_compound = (1 + interest_rate) ** exponent
 
@@ -105,17 +124,21 @@ def simulate_inflation(
 def plot_comparison(st, median_capital, min_capital, max_capital):
     plt.style.use("bmh")
 
+    lenght = len(median_capital)
+
     fig = plt.figure(figsize=(16, 6))
 
-    positions = np.arange(len(median_capital))
+    positions = np.arange(lenght)
 
     plt.plot(positions, median_capital, alpha=0.6)
     plt.fill_between(positions, min_capital, max_capital, alpha=0.2)
 
-    for day in range(364, len(median_capital), 364):
+    for day in range(364, lenght, 364):
         plt.axvline(day, color="darkgray", ls="--")
 
-    plt.xlim(0, len(median_capital))
+    plt.xlim(0, lenght)
+
+    plt.ylabel("Time (days)")
 
     plt.title("Real Value over Time Adjusted for Inflation", fontsize=20)
     plt.tight_layout()
