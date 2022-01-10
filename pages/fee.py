@@ -102,7 +102,6 @@ def simulate_fee(
     interest_rate = 1 + (
         proportional_interest + generator.normal(0, noise, size=(runs, days))
     )
-    print(np.max(interest_rate))
 
     exponent = np.arange(days) // compound_frequency_value + 1
 
