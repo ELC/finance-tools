@@ -1,10 +1,7 @@
-from datetime import datetime, timedelta
-
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 
 import altair as alt
-import pandas as pd
 
 
 __description__ = """
@@ -75,7 +72,7 @@ def inflation_simulation(st, **state):
 def simulate_inflation(
     initial_capital, optimistic, realistic, pesimistic, years, daily_conpound
 ):
-    runs = 1_000
+    runs = 5_000
     days = years * 365
     data = np.tile(initial_capital, (runs, days))
 
@@ -188,7 +185,7 @@ def plot_comparison(st, median_capital, min_capital, max_capital):
         .encode(
             x="x:Q",
             strokeDash=alt.value([5, 5]),
-            opacity=alt.value(1),
+            strokeWidth=alt.value(2),
         )
         .transform_filter(alt.datum.x % 365 == 0)
     )

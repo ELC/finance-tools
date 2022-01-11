@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import altair as alt
 
 from .common import compounding_frequencies, compound_frequency_options
 
@@ -20,7 +19,7 @@ def fee_recovery(st, **state):
 
     st.write("## Fee Information")
 
-    fee = st.number_input("Fee", value=2.0, min_value=0.0)
+    fee = st.number_input("Fee", value=5.0, min_value=0.0)
     percentage = st.checkbox("Percentage", value=True)
 
     if percentage:
@@ -30,9 +29,9 @@ def fee_recovery(st, **state):
 
     left, right = st.columns(2)
 
-    apr = left.number_input("Annual Percentage Rate", value=2.0, min_value=0.0)
+    apr = left.number_input("Annual Percentage Rate", value=3.0, min_value=0.0)
 
-    noise = right.number_input("± Noise", value=0.1)
+    noise = right.number_input("± Noise", value=0.2)
 
     compound_frequency = st.selectbox(
         "Compound Frequency", compound_frequency_options.keys(), index=2
@@ -43,19 +42,19 @@ def fee_recovery(st, **state):
     proportional_interest = apr / 100 / compounding_frequencies[compound_frequency]
     proportional_noise = noise / 100 / compounding_frequencies[compound_frequency]
 
-    years = st.slider("Years", min_value=1, max_value=15, value=2)
-
     st.write("## Simulation Results")
 
-    median_capital, min_capital, max_capital = simulate_fee(
+    median_capital, min_capital, max_capital, years = simulate_fee(
         initial_capital,
         fee,
         percentage,
         proportional_interest,
         proportional_noise,
-        years,
         compound_frequency_value,
     )
+
+    if years == -1:
+        st.warning("The fee will not be recovered in more than 15 years")
 
     st.write("### Fee Recovery")
 
@@ -74,66 +73,153 @@ def fee_recovery(st, **state):
     middle.metric("Median Time to Recover", f"{median_time_to_recover} days")
     right.metric("Maximum Time to Recover", f"{maximum_time_to_recover} days")
 
-    st.write("### Capital over Time in 'Today Money'")
     plot_comparison(st, initial_capital, median_capital, min_capital, max_capital)
 
 
 def simulate_fee(
-    initial_capital,
+    initial_capital_,
     fee,
     percentage,
     proportional_interest,
     noise,
-    years,
     compound_frequency_value,
 ):
-    runs = 1_000
-    days = years * 366
+    runs = 5_000
 
     if percentage:
-        initial_capital *= 1 - fee
+        initial_capital = initial_capital_ * (1 - fee)
     else:
-        initial_capital -= fee
+        initial_capital = initial_capital_ - fee
 
-    data = np.tile(initial_capital, (runs, days))
+    for years in [1, 2, 3, 5, 10, 15]:
+        days = years * 366
 
-    generator = np.random.default_rng()
+        data = np.tile(initial_capital, (runs, days))
 
-    interest_rate = 1 + (
-        proportional_interest + generator.normal(0, noise, size=(runs, days))
-    )
+        generator = np.random.default_rng()
 
-    exponent = np.arange(days) // compound_frequency_value + 1
+        interest_rate = 1 + (
+            proportional_interest + generator.normal(0, noise, size=(runs, days))
+        )
 
-    rate_compound = (interest_rate) ** exponent
+        exponent = np.arange(days) // compound_frequency_value + 1
 
-    data *= rate_compound
+        rate_compound = (interest_rate) ** exponent
 
-    median_data = np.median(data, axis=0)
-    minimum_bound = np.quantile(data, 0.05, axis=0)
-    maximum_bound = np.quantile(data, 0.95, axis=0)
+        data *= rate_compound
 
-    return median_data, minimum_bound, maximum_bound
+        median_data = np.median(data, axis=0)
+        minimum_bound = np.quantile(data, 0.05, axis=0)
+        maximum_bound = np.quantile(data, 0.95, axis=0)
+
+        if np.max(minimum_bound - initial_capital_) > 0:
+            return median_data, minimum_bound, maximum_bound, years
+
+    return median_data, minimum_bound, maximum_bound, -1
 
 
 def plot_comparison(st, initial_capital, median_capital, min_capital, max_capital):
-    plt.style.use("bmh")
+    lenght = len(median_capital)
 
-    fig = plt.figure(figsize=(16, 6))
+    positions = np.arange(lenght)
 
-    positions = np.arange(len(median_capital))
+    coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, median_capital)
+    ]
 
-    plt.plot(positions, median_capital, alpha=0.6)
-    plt.fill_between(positions, min_capital, max_capital, alpha=0.2)
+    data = {
+        "x": positions,
+        "median": median_capital,
+        "minimal": min_capital,
+        "maximum": max_capital,
+        "coordinates": np.array(coordinates),
+    }
 
-    for day in range(364, len(median_capital), 364):
-        plt.axvline(day, color="darkgray", ls="--")
+    df = pd.DataFrame(data)
 
-    plt.axhline(initial_capital, color="darkgray", ls="-.")
+    axis = alt.Axis(labelFontSize=20, titleFontSize=22)
 
-    plt.xlim(0, len(median_capital))
+    line = (
+        alt.Chart(df)
+        .mark_line()
+        .encode(
+            x=alt.X(
+                "x",
+                axis=axis,
+                title="Time (days)",
+                scale=alt.Scale(domain=[0, lenght], clamp=False, nice=False),
+            ),
+            y=alt.Y("median", axis=axis, title="Capital", scale=alt.Scale(zero=False)),
+        )
+    )
 
-    plt.title("Real Value over Time Adjusted for Inflation", fontsize=20)
-    plt.tight_layout()
+    area = (
+        alt.Chart(df)
+        .mark_area()
+        .encode(x=alt.X("x"), y="minimal:Q", y2="maximum:Q", opacity=alt.value(0.2))
+    )
 
-    st.pyplot(fig)
+    nearest = alt.selection(
+        type="single", nearest=True, on="mouseover", fields=["median"], empty="none"
+    )
+
+    selectors = (
+        alt.Chart(df)
+        .mark_point()
+        .encode(
+            x="x:Q",
+            opacity=alt.value(0),
+        )
+        .add_selection(nearest)
+    )
+
+    points = line.mark_point().encode(
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+    )
+
+    text = line.mark_text(
+        align="right",
+        dx=-5,
+        dy=-5,
+        color="white",
+        fontSize=18,
+    ).encode(text=alt.condition(nearest, alt.Text("coordinates:N"), alt.value(" ")))
+
+    rules = (
+        alt.Chart(df)
+        .mark_rule(color="gray")
+        .encode(
+            x="x:Q",
+        )
+        .transform_filter(nearest)
+    )
+
+    years = (
+        alt.Chart(df)
+        .mark_rule(color="white")
+        .encode(
+            x="x:Q",
+            strokeDash=alt.value([5, 5]),
+            strokeWidth=alt.value(2),
+        )
+        .transform_filter(alt.datum.x % 365 == 0)
+    )
+
+    initial_capital = (
+        alt.Chart(pd.DataFrame({"y": [initial_capital]}))
+        .mark_rule(color="white")
+        .encode(
+            y="y",
+            strokeDash=alt.value([5, 5]),
+            strokeWidth=alt.value(2),
+        )
+    )
+
+    chart = (
+        alt.layer(line, area, selectors, points, rules, text, years, initial_capital)
+        .interactive()
+        .properties(width=1600, height=500, title="Capital with Compound Interest")
+        .configure_title(fontSize=24)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
