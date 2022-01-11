@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.pyplot as plt
 
+import altair as alt
+import pandas as pd
+
 
 __description__ = """
 This application adjust an initial capital for inflation. Inflation can be
@@ -51,23 +54,6 @@ def inflation_simulation(st, **state):
         initial_capital, optimistic, realistic, pesimistic, years, daily_conpound
     )
 
-    st.write("### Capital at given Day")
-    ask_day = st.number_input("Day:", value=90, min_value=0, max_value=years*365)
-
-    left, middle, right = st.columns(3)
-
-    max_delta = (initial_capital - max_capital[ask_day]) / initial_capital * 100
-    left.metric("Optimistic Case", f"${max_capital[ask_day]:.2f}", f"-{max_delta:.2f}%")
-
-    median_delta = (initial_capital - median_capital[ask_day]) / initial_capital * 100
-    middle.metric(
-        "Realistic Case", f"${median_capital[ask_day]:.2f}", f"-{median_delta:.2f}%"
-    )
-
-    min_delta = (initial_capital - min_capital[ask_day]) / initial_capital * 100
-    right.metric("Pesimistic Case", f"${min_capital[ask_day]:.2f}", f"-{min_delta:.2f}%")
-
-
     st.write("### Capital at the End")
 
     left, middle, right = st.columns(3)
@@ -83,7 +69,6 @@ def inflation_simulation(st, **state):
         "Realistic Case", f"${median_capital[-1]:.2f}", f"-{median_delta:.2f}%"
     )
 
-    st.write("### Capital over Time in 'Today Money'")
     plot_comparison(st, median_capital, min_capital, max_capital)
 
 
@@ -94,9 +79,9 @@ def simulate_inflation(
     days = years * 365
     data = np.tile(initial_capital, (runs, days))
 
-    optimistic_rate = (optimistic / 100) 
-    realistic_rate = (realistic / 100)
-    pesimistic_rate = (pesimistic / 100)
+    optimistic_rate = optimistic / 100
+    realistic_rate = realistic / 100
+    pesimistic_rate = pesimistic / 100
 
     generator = np.random.default_rng()
     rate = generator.triangular(
@@ -122,25 +107,99 @@ def simulate_inflation(
 
 
 def plot_comparison(st, median_capital, min_capital, max_capital):
-    plt.style.use("bmh")
-
     lenght = len(median_capital)
-
-    fig = plt.figure(figsize=(16, 6))
 
     positions = np.arange(lenght)
 
-    plt.plot(positions, median_capital, alpha=0.6)
-    plt.fill_between(positions, min_capital, max_capital, alpha=0.2)
+    coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, median_capital)
+    ]
 
-    for day in range(364, lenght, 364):
-        plt.axvline(day, color="darkgray", ls="--")
+    data = {
+        "x": positions,
+        "median": median_capital,
+        "minimal": min_capital,
+        "maximum": max_capital,
+        "coordinates": np.array(coordinates),
+    }
 
-    plt.xlim(0, lenght)
+    df = pd.DataFrame(data)
 
-    plt.ylabel("Time (days)")
+    axis = alt.Axis(labelFontSize=20, titleFontSize=22)
 
-    plt.title("Real Value over Time Adjusted for Inflation", fontsize=20)
-    plt.tight_layout()
+    line = (
+        alt.Chart(df)
+        .mark_line()
+        .encode(
+            x=alt.X(
+                "x",
+                axis=axis,
+                title="Time (days)",
+                scale=alt.Scale(domain=[0, lenght], clamp=False, nice=False),
+            ),
+            y=alt.Y("median", axis=axis, title="Capital", scale=alt.Scale(zero=False)),
+        )
+    )
 
-    st.pyplot(fig)
+    area = (
+        alt.Chart(df)
+        .mark_area()
+        .encode(x=alt.X("x"), y="minimal:Q", y2="maximum:Q", opacity=alt.value(0.2))
+    )
+
+    nearest = alt.selection(
+        type="single", nearest=True, on="mouseover", fields=["median"], empty="none"
+    )
+
+    selectors = (
+        alt.Chart(df)
+        .mark_point()
+        .encode(
+            x="x:Q",
+            opacity=alt.value(0),
+        )
+        .add_selection(nearest)
+    )
+
+    points = line.mark_point().encode(
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+    )
+
+    text = line.mark_text(
+        align="right",
+        dx=-5,
+        dy=-5,
+        color="white",
+        fontSize=18,
+    ).encode(text=alt.condition(nearest, alt.Text("coordinates:N"), alt.value(" ")))
+
+    rules = (
+        alt.Chart(df)
+        .mark_rule(color="gray")
+        .encode(
+            x="x:Q",
+        )
+        .transform_filter(nearest)
+    )
+
+    years = (
+        alt.Chart(df)
+        .mark_rule(color="white")
+        .encode(
+            x="x:Q",
+            strokeDash=alt.value([5, 5]),
+            opacity=alt.value(1),
+        )
+        .transform_filter(alt.datum.x % 365 == 0)
+    )
+
+    chart = (
+        alt.layer(line, area, selectors, points, rules, text, years)
+        .interactive()
+        .properties(
+            width=1600, height=500, title="Real Value over Time Adjusted for Inflation"
+        )
+        .configure_title(fontSize=24)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
