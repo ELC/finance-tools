@@ -186,7 +186,7 @@ def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to
                 title="Time (days)",
                 scale=alt.Scale(domain=[0, lenght], clamp=False, nice=False),
             ),
-            y=alt.Y("value", axis=axis, title="Capital:Q", scale=alt.Scale(zero=False)),
+            y=alt.Y("value", axis=axis, title="Capital", scale=alt.Scale(zero=False)),
             color=alt.Color("type:N", legend=alt.Legend(title="Type")),
         )
     )

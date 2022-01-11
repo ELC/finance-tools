@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import altair as alt
 
 from streamlit_multipage import MultiPage
 
@@ -34,6 +33,8 @@ def compound_interest(st, **state):
     ) = show_inputs(st, compound_frequency_options, recurring_frequency_options, "")
 
     years_to_invest = st.slider("Years", min_value=1, max_value=15, value=2)
+
+    zero_start = st.checkbox("Start at Zero", value=False)
 
     st.write("---")
 
@@ -88,43 +89,151 @@ def compound_interest(st, **state):
         total_capital,
     )
 
-    plot_compound(st, capital_over_time, deposits, interests, initial_capital)
+    plot_compound(st, deposits, interests, initial_capital, zero_start)
 
 
-def plot_compound(st, capital_over_time, deposits, interests, initial_capital):
+def plot_compound(st, deposits_, interests_, initial_capital_, zero_start):
+    lenght = len(deposits_)
 
-    plt.style.use("bmh")
+    positions = np.arange(lenght)
 
-    fig = plt.figure(figsize=(16, 6))
+    initial_capital = np.repeat(initial_capital_, lenght)
+    deposits = initial_capital + np.array(deposits_)
+    interests = deposits + np.array(interests_)
 
-    total_simulation_time = len(capital_over_time)
-    positions = np.arange(total_simulation_time)
+    initial_coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, initial_capital)
+    ]
 
-    initial_capital = np.repeat(initial_capital, total_simulation_time)
-    deposits = initial_capital + np.array(deposits)
-    interests = deposits + np.array(interests)
+    initial_data = {
+        "x": positions,
+        "acummulated_value": initial_capital,
+        "value": initial_capital,
+        "type": "Initial Capital",
+        "coordinates": initial_coordinates,
+    }
 
-    plt.plot(positions, initial_capital, alpha=0.6, label="Initial Capital")
-    plt.fill_between(positions, initial_capital, step="pre", alpha=0.2)
+    deposits_coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, deposits)
+    ]
 
-    plt.plot(positions, deposits, alpha=0.6, label="Acummulated Deposits")
-    plt.fill_between(positions, deposits, initial_capital, step="pre", alpha=0.2)
+    deposits_data = {
+        "x": positions,
+        "acummulated_value": deposits,
+        "value": deposits_,
+        "type": "Recurrent Deposits",
+        "coordinates": deposits_coordinates,
+    }
 
-    plt.plot(positions, interests, alpha=0.6, label="Acummulated Interests")
-    plt.fill_between(positions, interests, deposits, step="pre", alpha=0.2)
+    interests_coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, interests)
+    ]
 
-    interval = 30 * total_simulation_time // 365
+    interests_data = {
+        "x": positions,
+        "acummulated_value": interests,
+        "value": interests_,
+        "type": "Interests",
+        "coordinates": interests_coordinates,
+    }
 
-    plt.xticks(np.arange(0, total_simulation_time, interval))
-    plt.xlabel("Time (Days)", fontsize=16)
-    plt.xlim(0, total_simulation_time)
+    initial_df = pd.DataFrame(initial_data)
+    deposits_df = pd.DataFrame(deposits_data)
+    interests_df = pd.DataFrame(interests_data)
 
-    plt.ylabel("Capital ($)", fontsize=16)
-    plt.ylim(bottom=0)
+    df = pd.concat([initial_df, deposits_df, interests_df])
 
-    plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left", fontsize=16)
+    axis = alt.Axis(labelFontSize=20, titleFontSize=22)
 
-    plt.title("Revenue using Compound Interest", fontsize=20)
-    plt.tight_layout()
+    lower_limit = 0 if zero_start else initial_capital_
 
-    st.pyplot(fig)
+    line = (
+        alt.Chart(df)
+        .mark_line(interpolate="basis")
+        .encode(
+            x=alt.X(
+                "x",
+                axis=axis,
+                title="Time (days)",
+                scale=alt.Scale(domain=[0, lenght], clamp=False, nice=False),
+            ),
+            y=alt.Y(
+                "acummulated_value",
+                axis=axis,
+                title="Capital",
+                scale=alt.Scale(domainMin=lower_limit),
+            ),
+            color=alt.Color("type:N", legend=alt.Legend(title="Type")),
+        )
+    )
+
+    area_order = {"Initial Capital": 0, "Recurrent Deposits": 1, "Interests": 2}
+    area = (
+        alt.Chart(df)
+        .transform_calculate(order=f"{area_order}[datum.variable]")
+        .mark_area()
+        .encode(
+            x="x",
+            y=alt.Y("value:Q", stack=True),
+            color=alt.Color("type:N", sort=alt.SortField("order", "descending")),
+            order="order:O",
+            opacity=alt.value(0.4),
+        )
+    )
+
+    nearest = alt.selection(
+        type="single",
+        nearest=True,
+        on="mouseover",
+        fields=["x"],
+        empty="none",
+        clear="mouseout",
+    )
+
+    selectors = (
+        alt.Chart(df)
+        .mark_point()
+        .encode(
+            x="x:Q",
+            opacity=alt.value(0),
+        )
+        .add_selection(nearest)
+    )
+
+    points = line.mark_point().transform_filter(nearest)
+
+    text = (
+        line.mark_text(
+            align="right",
+            dx=-5,
+            dy=-12,
+            color="white",
+            fontSize=18,
+        )
+        .encode(text="coordinates:N")
+        .transform_filter(nearest)
+    )
+
+    rules = (
+        alt.Chart(df).mark_rule(color="gray").encode(x="x:Q").transform_filter(nearest)
+    )
+
+    years = (
+        alt.Chart(df)
+        .mark_rule(color="white")
+        .encode(
+            x="x:Q",
+            strokeDash=alt.value([5, 5]),
+            strokeWidth=alt.value(2),
+        )
+        .transform_filter(alt.datum.x % 365 == 0)
+    )
+
+    chart = (
+        alt.layer(line, area, selectors, points, rules, text, years)
+        .interactive()
+        .properties(width=1600, height=500, title="Capital with Compound Interest")
+        .configure_title(fontSize=24)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
