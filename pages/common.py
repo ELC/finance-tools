@@ -55,14 +55,22 @@ def check_date(frequency: str, today: datetime) -> bool:
         return today.day == 31 and today.month == 12
 
 
-def show_inputs(st, compound_frequency_options, recurring_frequency_options, preffix):
+def show_inputs(
+    st, compound_frequency_options, recurring_frequency_options, preffix, defaults=None
+):
+
+    if defaults is None:
+        defaults = {}
+
+    initial_capital_ = defaults.get("initial_capital", 1000.0)
     initial_capital = st.number_input(
-        f"{preffix} Initial Capital", value=1000.0, step=100.0, format="%.2f"
+        f"{preffix} Initial Capital", value=initial_capital_, step=100.0, format="%.2f"
     )
 
+    apr_ = defaults.get("apr", 15.0)
     apr = st.number_input(
         f"{preffix} Annual Percentage Rate (APR)",
-        value=15.0,
+        value=apr_,
         step=0.5,
         min_value=0.0,
         max_value=200.0,
@@ -70,16 +78,27 @@ def show_inputs(st, compound_frequency_options, recurring_frequency_options, pre
     )
     apr_decimal = apr / 100
 
+    compound_frequency_ = defaults.get("compound_frequency_index", 2)
     compound_frequency = st.selectbox(
-        f"{preffix} Compound Frequency", compound_frequency_options.keys(), index=2
+        f"{preffix} Compound Frequency",
+        compound_frequency_options.keys(),
+        index=compound_frequency_,
     )
     compound_frequency_value = compound_frequency_options[compound_frequency]
 
+    recurring_deposits_ = defaults.get("recurring_deposits", 50.0)
     recurring_deposits = st.number_input(
-        f"{preffix} Recurring Deposits", step=1.0, format="%.2f", value=50.0
+        f"{preffix} Recurring Deposits",
+        step=1.0,
+        format="%.2f",
+        value=recurring_deposits_,
     )
+
+    recurring_frequency_ = defaults.get("recurring_frequency_index", 2)
     recurring_frequency = st.selectbox(
-        f"{preffix} Recurring Frequency", recurring_frequency_options, index=2
+        f"{preffix} Recurring Frequency",
+        recurring_frequency_options,
+        index=recurring_frequency_,
     )
 
     if recurring_frequency == "Same as Compound":

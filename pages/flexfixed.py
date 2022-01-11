@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import altair as alt
 
 from streamlit_multipage import MultiPage
 
@@ -25,6 +24,9 @@ def flexfixed(st, **state):
     left, right = st.columns(2)
 
     left.write("### Flex Term")
+
+    flex_defaults = {"initial_capital": 800.0, "apr": 12.0, "recurring_deposits": 30.0}
+
     (
         flex_initial_capital,
         flex_apr_decimal,
@@ -33,13 +35,24 @@ def flexfixed(st, **state):
         flex_recurring_deposits,
         flex_recurring_frequency,
     ) = show_inputs(
-        left, compound_frequency_options, recurring_frequency_options, "Flex"
+        left,
+        compound_frequency_options,
+        recurring_frequency_options,
+        "Flex",
+        flex_defaults,
     )
     flex_proportional_interest = (
         1 + flex_apr_decimal / compounding_frequencies[flex_compound_frequency]
     )
 
     right.write("### Fixed Term")
+
+    fixed_defaults = {
+        "initial_capital": 500.0,
+        "apr": 15.0,
+        "recurring_deposits": 50.0,
+        "compound_frequency_index": 1,
+    }
     (
         fixed_initial_capital,
         fixed_apr_decimal,
@@ -48,7 +61,11 @@ def flexfixed(st, **state):
         fixed_recurring_deposits,
         fixed_recurring_frequency,
     ) = show_inputs(
-        right, compound_frequency_options, recurring_frequency_options, "Fixed"
+        right,
+        compound_frequency_options,
+        recurring_frequency_options,
+        "Fixed",
+        fixed_defaults,
     )
     fixed_proportional_interest = (
         1 + fixed_apr_decimal / compounding_frequencies[fixed_compound_frequency]
@@ -110,6 +127,9 @@ def flexfixed(st, **state):
     difference = np.abs(flex_capital_over_time - fixed_capital_over_time)
     time_to_pass = np.argmin(difference)
 
+    if time_to_pass == len(difference) - 2:
+        time_to_pass = 0
+
     st.write(
         f"The best one was the **{best}** alternative, yielding **${amount:.2f} ({percentage:.2f}%)** more than the alternative. It took {time_to_pass} days to match the alternative."
     )
@@ -119,31 +139,120 @@ def flexfixed(st, **state):
     middle_right.metric("Difference (%)", f"{percentage:.2f}%")
     right.metric("Time to match", f"{time_to_pass} days")
 
-    plot_comparison(st, flex_capital_over_time, fixed_capital_over_time)
+    plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to_pass)
 
 
-def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time):
-    plt.style.use("bmh")
+def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to_pass):
+    lenght = len(fixed_capital_over_time)
+    positions = np.arange(lenght)
 
-    fig = plt.figure(figsize=(16, 6))
+    flex_coordinates = [
+        f"({pos}, {value:.2f})" for pos, value in zip(positions, flex_capital_over_time)
+    ]
 
-    total_simulation_time = len(flex_capital_over_time)
-    positions = np.arange(total_simulation_time)
+    flex_data = {
+        "x": positions,
+        "value": flex_capital_over_time + (np.ones(lenght) * 1e-10).cumsum(),
+        "type": "Flex",
+        "coordinates": flex_coordinates,
+    }
 
-    plt.plot(positions, flex_capital_over_time, alpha=0.6, label="Flex Capital")
-    plt.plot(positions, fixed_capital_over_time, alpha=0.6, label="Fixed Capital")
+    fixed_coordinates = [
+        f"({pos}, {value:.2f})"
+        for pos, value in zip(positions, fixed_capital_over_time)
+    ]
 
-    interval = 30 * total_simulation_time // 365
+    fixed_data = {
+        "x": positions,
+        "value": fixed_capital_over_time + (np.ones(lenght) * 1e-10).cumsum(),
+        "type": "Fixed",
+        "coordinates": fixed_coordinates,
+    }
 
-    plt.xticks(np.arange(0, total_simulation_time, interval))
-    plt.xlabel("Time (Days)", fontsize=16)
-    plt.xlim(0, total_simulation_time)
+    flex_df = pd.DataFrame(flex_data)
+    fixed_df = pd.DataFrame(fixed_data)
 
-    plt.ylabel("Capital ($)", fontsize=16)
+    df = pd.concat([flex_df, fixed_df])
 
-    plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left", fontsize=16)
+    axis = alt.Axis(labelFontSize=20, titleFontSize=22)
 
-    plt.title("Revenue using Compound Interest", fontsize=20)
-    plt.tight_layout()
+    line = (
+        alt.Chart(df)
+        .mark_line(interpolate="basis")
+        .encode(
+            x=alt.X(
+                "x",
+                axis=axis,
+                title="Time (days)",
+                scale=alt.Scale(domain=[0, lenght], clamp=False, nice=False),
+            ),
+            y=alt.Y("value", axis=axis, title="Capital:Q", scale=alt.Scale(zero=False)),
+            color=alt.Color("type:N", legend=alt.Legend(title="Type")),
+        )
+    )
 
-    st.pyplot(fig)
+    nearest = alt.selection(
+        type="single",
+        nearest=True,
+        on="mouseover",
+        fields=["x"],
+        empty="none",
+        clear="mouseout",
+    )
+
+    selectors = (
+        alt.Chart(df)
+        .mark_point()
+        .encode(
+            x="x:Q",
+            opacity=alt.value(0),
+        )
+        .add_selection(nearest)
+    )
+
+    points = line.mark_point().transform_filter(nearest)
+
+    text = (
+        line.mark_text(
+            align="right",
+            dx=-5,
+            dy=-12,
+            color="white",
+            fontSize=18,
+        )
+        .encode(text="coordinates:N")
+        .transform_filter(nearest)
+    )
+
+    rules = (
+        alt.Chart(df).mark_rule(color="gray").encode(x="x:Q").transform_filter(nearest)
+    )
+
+    match_point = (
+        alt.Chart(pd.DataFrame({"x": [time_to_pass]}))
+        .mark_rule(color="white")
+        .encode(
+            x="x",
+            strokeWidth=alt.value(2),
+        )
+    )
+
+    years = (
+        alt.Chart(df)
+        .mark_rule(color="white")
+        .encode(
+            x="x:Q",
+            strokeDash=alt.value([5, 5]),
+            strokeWidth=alt.value(2),
+        )
+        .transform_filter(alt.datum.x % 365 == 0)
+    )
+
+    chart = (
+        alt.layer(line, selectors, points, rules, text, years, match_point)
+        .interactive()
+        .properties(width=1600, height=500, title="Capital with Compound Interest")
+        .configure_title(fontSize=24)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
