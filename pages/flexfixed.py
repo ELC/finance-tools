@@ -15,6 +15,8 @@ from .common import (
     show_inputs,
 )
 
+from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+
 ## Based on https://calculadoras.omareducacionfinanciera.com/
 
 
@@ -178,7 +180,7 @@ def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to
 
     line = (
         alt.Chart(df)
-        .mark_line(interpolate="basis")
+        .mark_line()
         .encode(
             x=alt.X(
                 "x",
@@ -191,61 +193,17 @@ def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to
         )
     )
 
-    nearest = alt.selection(
-        type="single",
-        nearest=True,
-        on="mouseover",
-        fields=["x"],
-        empty="none",
-        clear="mouseout",
-    )
-
-    selectors = (
-        alt.Chart(df)
-        .mark_point()
-        .encode(
-            x="x:Q",
-            opacity=alt.value(0),
-        )
-        .add_selection(nearest)
-    )
-
+    nearest = select_nearest()
+    selectors = get_selectors(df, nearest)
+    text = add_text(line, "coordinates:N", nearest)
+    rules = add_rules(df, nearest)
+    years = mark_years(df)
     points = line.mark_point().transform_filter(nearest)
-
-    text = (
-        line.mark_text(
-            align="right",
-            dx=-5,
-            dy=-12,
-            color="white",
-            fontSize=18,
-        )
-        .encode(text="coordinates:N")
-        .transform_filter(nearest)
-    )
-
-    rules = (
-        alt.Chart(df).mark_rule(color="gray").encode(x="x:Q").transform_filter(nearest)
-    )
 
     match_point = (
         alt.Chart(pd.DataFrame({"x": [time_to_pass]}))
         .mark_rule(color="white")
-        .encode(
-            x="x",
-            strokeWidth=alt.value(2),
-        )
-    )
-
-    years = (
-        alt.Chart(df)
-        .mark_rule(color="white")
-        .encode(
-            x="x:Q",
-            strokeDash=alt.value([5, 5]),
-            strokeWidth=alt.value(2),
-        )
-        .transform_filter(alt.datum.x % 365 == 0)
+        .encode(x="x", strokeWidth=alt.value(2))
     )
 
     chart = (

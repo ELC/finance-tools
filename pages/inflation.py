@@ -3,6 +3,7 @@ import pandas as pd
 
 import altair as alt
 
+from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
 
 __description__ = """
 This application adjust an initial capital for inflation. Inflation can be
@@ -144,51 +145,13 @@ def plot_comparison(st, median_capital, min_capital, max_capital):
         .encode(x=alt.X("x"), y="minimal:Q", y2="maximum:Q", opacity=alt.value(0.2))
     )
 
-    nearest = alt.selection(
-        type="single", nearest=True, on="mouseover", fields=["median"], empty="none"
-    )
+    nearest = select_nearest()
+    selectors = get_selectors(df, nearest)
+    text = add_text(line, "coordinates:N", nearest)
+    rules = add_rules(df, nearest)
+    years = mark_years(df)
 
-    selectors = (
-        alt.Chart(df)
-        .mark_point()
-        .encode(
-            x="x:Q",
-            opacity=alt.value(0),
-        )
-        .add_selection(nearest)
-    )
-
-    points = line.mark_point().encode(
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-    )
-
-    text = line.mark_text(
-        align="right",
-        dx=-5,
-        dy=-5,
-        color="white",
-        fontSize=18,
-    ).encode(text=alt.condition(nearest, alt.Text("coordinates:N"), alt.value(" ")))
-
-    rules = (
-        alt.Chart(df)
-        .mark_rule(color="gray")
-        .encode(
-            x="x:Q",
-        )
-        .transform_filter(nearest)
-    )
-
-    years = (
-        alt.Chart(df)
-        .mark_rule(color="white")
-        .encode(
-            x="x:Q",
-            strokeDash=alt.value([5, 5]),
-            strokeWidth=alt.value(2),
-        )
-        .transform_filter(alt.datum.x % 365 == 0)
-    )
+    points = line.mark_point().transform_filter(nearest)
 
     chart = (
         alt.layer(line, area, selectors, points, rules, text, years)
