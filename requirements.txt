@@ -1,7 +1,6 @@
-altair
-pandas
-streamlit
 numpy
-matplotlib
-streamlit-multipage==0.0.16
+pandas
+altair
 joblib
+streamlit
+streamlit-multipage==0.0.17
