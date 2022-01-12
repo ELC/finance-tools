@@ -6,7 +6,25 @@ from .common import compounding_frequencies, compound_frequency_options
 from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
 
 __description__ = """
+This app helps to predict when a fee will be amortized, that is, when the
+interest gained will equal the paid fee. The fee could be either an amount or a
+percentage.
 
+Since there are many ways to earn interest two parameters could be specified, a
+annual percentage rate (APR) and noise, the APR is the yielded interest in a
+year and the noise is a normally distributed perturbation in that APR. The
+noise helps to simulate non-fixed rates (e.g. value appreciation from ETFs), if
+the rate is fixed (e.g. in Fixed-Terms or Flex-Terms), the noise can be set to
+0.
+
+The interest can be optionally be compounded Annually, Monthly or Daily.
+
+The result is the minimum, median, and maximum number of days to recover what
+was paid as a fee.
+
+The number of years to simulate will be automatically determined but it will
+fail if it is more than 15 years. Fees should be recovered much sooner most of
+the time.
 """
 
 

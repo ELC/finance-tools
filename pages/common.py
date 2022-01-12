@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-compounding_frequencies = {"Annualy": 1, "Monthly": 12, "Daily": 365}
+compounding_frequencies = {"Annually": 1, "Monthly": 12, "Daily": 365}
 
-compound_frequency_options = {"Annualy": 365, "Monthly": 30, "Daily": 1}
+compound_frequency_options = {"Annually": 365, "Monthly": 30, "Daily": 1}
 
 recurring_frequency_options = ["Same as Compound"] + list(
     compound_frequency_options.keys()
@@ -29,9 +29,9 @@ def interest_metrics(
         monthly_interest = f"${monthly_interest:.2f}"
 
     annual_interest = "N/A"
-    if compound_frequency in ["Daily", "Monthly", "Annualy"]:
+    if compound_frequency in ["Daily", "Monthly", "Annually"]:
         annual_interest = (
-            1 + apr_decimal / compounding_frequencies["Annualy"]
+            1 + apr_decimal / compounding_frequencies["Annually"]
         ) * total_capital - total_capital
         annual_interest = f"${annual_interest:.2f}"
 
@@ -51,7 +51,7 @@ def check_date(frequency: str, today: datetime) -> bool:
         return True
     elif frequency == "Monthly":
         return today.day == 1
-    elif frequency == "Annualy":
+    elif frequency == "Annually":
         return today.day == 31 and today.month == 12
 
 

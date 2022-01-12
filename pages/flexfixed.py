@@ -17,11 +17,30 @@ from .common import (
 
 from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
 
-## Based on https://calculadoras.omareducacionfinanciera.com/
+__description__ = """
+This application compares the capital evolution over time from a flex-term
+investment and a fixed-term investment. It is assumed that the rates are fixed
+and no noise is being considered.
+
+Both investments are compounded with a customizable compounding frequency
+(annually, monthly or daily), it is also possible to do recurrent deposits and
+have a customizable deposit frequency different from the compounding frequency
+(e.g interest compound daily but deposits monthly).
+
+The two investments are simulated and some summary metrics are provided as
+well. The best approach is not determined by the final capital but rather by
+the greatest interest at the end.
+
+Typically online services and fintech provide both flex and fixed terms, most
+fixed terms accrue interest monthly but some do it daily instead. With this
+calculator, one can see how the two investments will compare and help in the
+decision-making process.
+"""
 
 
 def flexfixed(st, **state):
     st.title("Flex Term vs Fixed Term Comparison")
+    st.write(__description__)
 
     left, right = st.columns(2)
 

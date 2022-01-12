@@ -17,11 +17,32 @@ from .common import (
 
 from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
 
-## Based on https://calculadoras.omareducacionfinanciera.com/
+__description__ = """
+This app simulates compound interest, that is, investments that yield interests
+and whose interests are invested back to gain even more interest and thus
+producing exponential growth.
+
+The compounding could be configured to happen Annually, Monthly, or Daily, and
+it is also possible to specify recurrent deposits with the same or a different
+frequency as the compounding (e.g the compounding could be daily but the
+deposits monthly).
+
+This app is mostly focused on the ones wanting a passive income, therefore, at
+the end of the simulation the daily, monthly and annual interests are shown
+based on the capital at the end.
+
+To simplify, the interest is assumed to be fixed (no noise), this is because
+people looking for passive income usually look for a long-term investment,
+mitigating the effects of noise.
+
+For small amounts, it is possible to enable the "Start at Zero" to see the zero
+level, this is unfriendly for larger amounts and it is disabled by default.
+"""
 
 
 def compound_interest(st, **state):
     st.title("Compound Interest Calculator")
+    st.write(__description__)
 
     st.write("### Input Parameters")
 
