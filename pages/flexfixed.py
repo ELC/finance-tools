@@ -35,6 +35,12 @@ Typically online services and fintech provide both flex and fixed terms, most
 fixed terms accrue interest monthly but some do it daily instead. With this
 calculator, one can see how the two investments will compare and help in the
 decision-making process.
+
+This app does not discriminate between the initial capital, the deposits and
+the interest in the plots, to have a more detailed analysis, check the
+"Compound Interest" app. Moreover, this app neither considers inflation, check
+the "Inflation Simulation" app in the sidebar to get more information or
+substract the estimated inflation rate from your APRs.
 """
 
 

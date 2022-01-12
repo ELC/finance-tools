@@ -25,6 +25,9 @@ was paid as a fee.
 The number of years to simulate will be automatically determined but it will
 fail if it is more than 15 years. Fees should be recovered much sooner most of
 the time.
+
+This app does not include recurrent deposits, however the "Compound Interest"
+and the "Flex Term vs Fixed Term" apps do, check them in the sidebar.
 """
 
 

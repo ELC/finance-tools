@@ -37,6 +37,10 @@ mitigating the effects of noise.
 
 For small amounts, it is possible to enable the "Start at Zero" to see the zero
 level, this is unfriendly for larger amounts and it is disabled by default.
+
+This app DOES NOT account for inflation, if you want to do it, substract from
+your APR the estimated inflation rate. Moreover, to experiment more with
+inflation, check the Inflation Simulation app on the sidebar.
 """
 
 

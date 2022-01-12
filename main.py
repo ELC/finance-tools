@@ -12,8 +12,9 @@ def landing_page(st):
 
 def header(st):
     snippet = """
-    <div style="text-align: right">
-        <a href="https://github.com/ELC/python-compound-interest" target="_blank" style="text-decoration: none; color: goldenrod">Give it a ★ on Github</a>
+    <div style="display: flex; justify-content: space-between">
+        <div>🡠 Check the sidebar for more apps</div>
+        <div><a href="https://github.com/ELC/python-compound-interest" target="_blank" style="text-decoration: none; color: goldenrod">Give it a ★ on Github</a></div>
     </div>
     """
     st.markdown(snippet, unsafe_allow_html=True)
