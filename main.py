@@ -14,7 +14,7 @@ def header(st):
     snippet = """
     <div style="display: flex; justify-content: space-between">
         <div>🡠 Check the sidebar for more apps</div>
-        <div><a href="https://github.com/ELC/python-compound-interest" target="_blank" style="text-decoration: none; color: goldenrod">Give it a ★ on Github</a></div>
+        <div><a href="https://github.com/ELC/finance-tools" target="_blank" style="text-decoration: none; color: goldenrod">Give it a ★ on Github</a></div>
     </div>
     """
     st.markdown(snippet, unsafe_allow_html=True)
@@ -26,7 +26,7 @@ def footer(st):
         Developed using 
         <a href="https://streamlit.io/" target="_blank" style="text-decoration: none">streamlit</a>
         by <a href="https://elc.github.io" target="_blank" style="text-decoration: none">Ezequiel Leonardo Castaño</a>
-        - Python Code available at <a href="https://github.com/ELC/python-compound-interest" target="_blank" style="text-decoration: none">Github</a>.
+        - Python Code available at <a href="https://github.com/ELC/finance-tools" target="_blank" style="text-decoration: none">Github</a>.
         <br>
         If you like the app, consider <a href="https://elc.github.io/donate" target="_blank" style="text-decoration: none">donating</a>.
         <br>
