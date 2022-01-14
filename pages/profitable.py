@@ -38,7 +38,7 @@ def profitability_assessment(st, **state):
     ticker = st.text_input("Ticker Name", max_chars=10, placeholder="Stocks like 'AAPL' or cryptos like 'BTC-USD'")
     shift = st.number_input("Investment Time (days)", value=30, min_value=1)
 
-    years_ = st.number_input("Years to Consider (0 for max)", value=5, min_value=0)
+    years_ = st.number_input("Years to Consider (0 for max)", value=2, min_value=0)
     years = f"{years_}y" if years_ else "max"
 
     if years_ and shift // 365 >= years_:
