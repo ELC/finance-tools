@@ -35,7 +35,7 @@ def interest_metrics(
         ) * total_capital - total_capital
         annual_interest = f"${annual_interest:.2f}"
 
-    labels = ["Daily Interest", "Monthly Interest", "Annual Interest"]
+    labels = ["Daily Interest", "Monthly Interest", "Annually Interest"]
     values = [daily_interest, monthly_interest, annual_interest]
     columns = st.columns(3)
     show_metrics(columns, labels, values)

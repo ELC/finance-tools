@@ -8,11 +8,11 @@ import altair as alt
 
 
 __description__ = """
-This app allows to analyse the history of an assets' performance, first a
-Ticker is selected, then a Investment Time is defined and the number of years
+This app allows to analyze the history of an assets' performance, first a
+Ticker is selected, then an Investment Time is defined, and the number of years
 can be also set.
 
-The app will back track which were the profits/losses of investing in the given
+The app will backtrack which were the profits/losses of investing in the given
 asset after waiting the set investment time. This is by no means a way to
 predict future returns but rather to assess the stability and potential
 performance of an asset. That being said, unpredicted events can cause

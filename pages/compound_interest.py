@@ -28,7 +28,7 @@ frequency as the compounding (e.g the compounding could be daily but the
 deposits monthly).
 
 This app is mostly focused on the ones wanting a passive income, therefore, at
-the end of the simulation the daily, monthly and annual interests are shown
+the end of the simulation the daily, monthly and annually interests are shown
 based on the capital at the end.
 
 To simplify, the interest is assumed to be fixed (no noise), this is because
