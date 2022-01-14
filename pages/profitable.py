@@ -35,7 +35,7 @@ def profitability_assessment(st, **state):
 
     st.write("### Input Parameters")
 
-    ticker = st.text_input("Ticker Name", max_chars=10, placeholder="AAPL or BTC-USD")
+    ticker = st.text_input("Ticker Name", max_chars=10, placeholder="Stocks like 'AAPL' or cryptos like 'BTC-USD'")
     shift = st.number_input("Investment Time (days)", value=30, min_value=1)
 
     years_ = st.number_input("Years to Consider (0 for max)", value=5, min_value=0)
