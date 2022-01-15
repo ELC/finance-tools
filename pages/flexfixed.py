@@ -234,7 +234,7 @@ def plot_comparison(st, flex_capital_over_time, fixed_capital_over_time, time_to
     chart = (
         alt.layer(line, selectors, points, rules, text, years, match_point)
         .interactive()
-        .properties(width=1600, height=500, title="Capital with Compound Interest")
+        .properties(width=1600, height=500, title="Flex Term vs Fixed Term over Time")
         .configure_title(fontSize=24)
     )
 
