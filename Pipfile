@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "==1.26.4"
+pandas = "==2.2.1"
+altair = "==5.2.0"
+streamlit = "==1.32.2"
+yfinance = "==0.2.37"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"

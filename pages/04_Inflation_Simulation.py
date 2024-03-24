@@ -3,7 +3,10 @@ import pandas as pd
 
 import altair as alt
 
-from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+import streamlit as st
+
+from utils.common import footer
+from utils.plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
 
 __description__ = """
 This application adjusts an initial capital for inflation. Inflation can be
@@ -20,7 +23,7 @@ Fixed Term" apps in the sidebar.
 """
 
 
-def inflation_simulation(st, **state):
+def entrypoint(st, **state):
     st.title("Inflation Simulation")
     st.write(__description__)
 
@@ -164,3 +167,7 @@ def plot_comparison(st, median_capital, min_capital, max_capital):
     )
 
     st.altair_chart(chart, use_container_width=True)
+
+if __name__ == "__main__":
+    entrypoint(st)
+    footer(st)

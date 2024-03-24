@@ -2,20 +2,25 @@ import numpy as np
 import pandas as pd
 import altair as alt
 
-from streamlit_multipage import MultiPage
+import streamlit as st
 
-from .common import (
+from utils.common import (
     interest_metrics,
     show_metrics,
-    check_date,
     simulate,
     compounding_frequencies,
     compound_frequency_options,
     recurring_frequency_options,
     show_inputs,
+    footer,
 )
 
-from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+from utils.plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+
+st.set_page_config(
+    page_title="Hello",
+    layout="wide"
+)
 
 __description__ = """
 This app simulates compound interest, that is, investments that yield interests
@@ -44,7 +49,7 @@ inflation, check the Inflation Simulation app on the sidebar.
 """
 
 
-def compound_interest(st, **state):
+def entrypoint(st, **state):
     st.title("Compound Interest Calculator")
     st.write(__description__)
 
@@ -223,3 +228,8 @@ def plot_compound(st, deposits_, interests_, initial_capital_, zero_start):
     )
 
     st.altair_chart(chart, use_container_width=True)
+
+
+if __name__ == "__main__":
+    entrypoint(st)
+    footer(st)

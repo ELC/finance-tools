@@ -176,3 +176,19 @@ def simulate(
         deposits,
         interests,
     )
+
+
+def footer(st):
+    snippet = """
+    <div style="text-align: center; line-height: 2.5em;">
+        Developed using 
+        <a href="https://streamlit.io/" target="_blank" style="text-decoration: none">streamlit</a>
+        by <a href="https://elc.github.io" target="_blank" style="text-decoration: none">Ezequiel Leonardo Castaño</a>
+        - Python Code available at <a href="https://github.com/ELC/finance-tools" target="_blank" style="text-decoration: none">Github</a>.
+        <br>
+        If you like the app, consider <a href="https://elc.github.io/donate" target="_blank" style="text-decoration: none">donating</a>.
+        <br>
+        For contact information, reach out by <a href="https://www.linkedin.com/in/ezequielcastano/" target="_blank" style="text-decoration: none">LinkedIn</a>
+    </div>
+    """
+    st.markdown(snippet, unsafe_allow_html=True)

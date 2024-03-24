@@ -1,11 +1,16 @@
 import numpy as np
 import pandas as pd
-from scipy import signal
 
 import yfinance as yf
 
 import altair as alt
+import streamlit as st
 
+from utils.common import footer
+
+st.set_page_config(
+    page_title="Hello",
+)
 
 __description__ = """
 This app allows to analyze the history of an assets' performance, first a
@@ -29,7 +34,7 @@ Remember: *"Past performance is no guarantee of future results"*
 """
 
 
-def profitability_assessment(st, **state):
+def entrypoint(st, **state):
     st.title("Asset Profitability Analyser")
     st.write(__description__)
 
@@ -141,3 +146,8 @@ def plot_profit(st, data):
     )
 
     st.altair_chart(line, use_container_width=True)
+
+if __name__ == "__main__":
+
+    entrypoint(st)
+    footer(st)

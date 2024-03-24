@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import altair as alt
 
-from .common import compounding_frequencies, compound_frequency_options
-from .plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+from utils.common import compounding_frequencies, compound_frequency_options, footer
+from utils.plotting import select_nearest, get_selectors, add_rules, mark_years, add_text
+
+import streamlit as st
 
 __description__ = """
 This app helps to predict when a fee will be amortized, that is, when the
@@ -31,7 +33,7 @@ and the "Flex Term vs Fixed Term" apps do, check them in the sidebar.
 """
 
 
-def fee_recovery(st, **state):
+def entrypoint(st, **state):
     st.title("Fee Recovery Simulation")
     st.write(__description__)
 
@@ -201,3 +203,7 @@ def plot_comparison(st, initial_capital, median_capital, min_capital, max_capita
     )
 
     st.altair_chart(chart, use_container_width=True)
+
+if __name__ == "__main__":
+    entrypoint(st)
+    footer(st)
